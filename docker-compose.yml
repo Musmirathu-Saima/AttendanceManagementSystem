@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./backend:/app/backend
+    environment:
+      - PYTHONUNBUFFERED=1
