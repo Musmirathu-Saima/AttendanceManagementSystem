@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime, timezone
 import uvicorn
 
-# Import our utility modules
+# Import our utility module
 from face_recognition_utils import load_known_faces, match_face
 from ocr_utils import extract_text_from_id_card, parse_id_card_info
 
@@ -79,7 +79,7 @@ class AttendanceRecordResponse(BaseModel):
 async def root():
     return {"message": "🤖 Student Attendance System API"}
 
-@api_router.post("status", response_model=StatusCheck)
+@api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
     status_dict = input.model_dump()
     status_obj = StatusCheck(**status_dict)
@@ -88,7 +88,7 @@ async def create_status_check(input: StatusCheckCreate):
     _ = await db.status_checks.insert_one(doc)
     return status_obj
 
-@api_router.get("status", response_model=List[StatusCheck])
+@api_router.get("/status", response_model=List[StatusCheck])
 async def get_status_checks():
     status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
     for check in status_checks:
@@ -96,7 +96,24 @@ async def get_status_checks():
             check['timestamp'] = datetime.fromisoformat(check['timestamp'])
     return status_checks
 
-@api_router.post("face-recognition")
+# @api_router.post("face-recognition")
+# async def recognize_face(file: UploadFile = File(...)):
+#     try:
+#         image_bytes = await file.read()
+#         result = match_face(image_bytes, known_faces_db)
+#         return result
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+
+# @api_router.post("/face-recognition")
+# async def recognize_face(file: UploadFile = File(...)):
+#     try:
+#         image_bytes = await file.read()
+#         result = match_face(image_bytes, known_faces_db)
+#         return result
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+@api_router.post("/face-recognition")
 async def recognize_face(file: UploadFile = File(...)):
     try:
         image_bytes = await file.read()
@@ -105,11 +122,12 @@ async def recognize_face(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.get("known-faces-count")
+
+@api_router.get("/known-faces-count")
 async def get_known_faces_count():
     return {"count": len(known_faces_db), "faces": list(known_faces_db.keys())}
 
-@api_router.post("id-card-ocr")
+@api_router.post("/id-card-ocr")
 async def process_id_card(file: UploadFile = File(...)):
     try:
         image_bytes = await file.read()
@@ -120,7 +138,7 @@ async def process_id_card(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.post("attendance/record")
+@api_router.post("/attendance/record")
 async def record_attendance(
     student_name: str,
     face_confidence: Optional[float] = None,
@@ -145,7 +163,7 @@ async def record_attendance(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.get("attendance/records")
+@api_router.get("/attendance/records")
 async def get_attendance_records():
     try:
         records = await db.attendance_records.find({}, {"_id": 0}).to_list(1000)
@@ -177,7 +195,9 @@ async def get_attendance_stats():
 
 
 # Include the router
-app.include_router(api_router)
+# app.include_router(api_router)
+app.include_router(api_router, prefix="/api")
+
 
 
 # ---- Add this block so supervisor / docker can run it directly ----
