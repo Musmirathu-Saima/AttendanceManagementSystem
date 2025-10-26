@@ -1,12 +1,17 @@
-# Use an official Node.js image
-FROM node:18
+# Use latest Node LTS
+FROM node:20-bullseye-slim
 
 # Set working directory
 WORKDIR /app/frontend
 
-# Copy package.json and install dependencies
+# Update OS packages
+RUN apt-get update && apt-get upgrade -y && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Copy package.json and package-lock.json
 COPY package*.json ./
-RUN npm install
+
+# Install dependencies with legacy peer deps
+RUN npm ci --legacy-peer-deps
 
 # Copy the rest of the frontend files
 COPY . .

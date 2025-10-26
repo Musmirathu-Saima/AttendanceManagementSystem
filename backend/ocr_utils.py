@@ -4,6 +4,9 @@ import pytesseract
 from pathlib import Path
 import os
 
+pytesseract.pytesseract.tesseract_cmd = "/usr/local/bin/tesseract"
+os.environ["TESSDATA_PREFIX"] = "/Users/admin/Downloads/MLBASEDATTENDANCESYSTEMOCRIDFEATURE/tessdata"
+
 def extract_text_from_id_card(image_bytes):
     """Extract text from ID card image using OCR"""
     try:

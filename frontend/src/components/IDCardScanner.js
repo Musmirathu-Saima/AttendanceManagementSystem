@@ -11,7 +11,7 @@ export const IDCardScanner = ({ faceData, onComplete, onBack }) => {
   const [stream, setStream] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Start and stop camera properly on mount/unmount
+  // ✅ Start and stop camera on mount/unmount
   useEffect(() => {
     startCamera();
     return () => stopCamera();
@@ -45,7 +45,7 @@ export const IDCardScanner = ({ faceData, onComplete, onBack }) => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
 
-    // ✅ Fix: ensure video dimensions are available
+    // ✅ Ensure correct dimensions
     canvas.width = video.videoWidth || 640;
     canvas.height = video.videoHeight || 480;
 
@@ -63,7 +63,8 @@ export const IDCardScanner = ({ faceData, onComplete, onBack }) => {
         const formData = new FormData();
         formData.append('file', blob, 'idcard.jpg');
 
-        const response = await axios.post(`${API}/id-card-ocr`, formData, {
+        // ✅ Use correct backend route
+        const response = await axios.post(`${API}/ocr/id-card`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
 
@@ -71,7 +72,7 @@ export const IDCardScanner = ({ faceData, onComplete, onBack }) => {
         setLoading(false);
 
         if (response.data?.success) {
-          // ✅ Add a slight delay for better UX before marking complete
+          // ✅ Wait briefly before marking complete
           setTimeout(async () => {
             await recordAttendance(faceData, response.data);
             stopCamera();
@@ -94,9 +95,9 @@ export const IDCardScanner = ({ faceData, onComplete, onBack }) => {
       const attendanceData = {
         student_name: faceData?.name || 'Unknown',
         face_confidence: faceData?.confidence,
-        id_card_text: idData?.text,
-        id_card_name: idData?.parsed?.name,
-        id_card_number: idData?.parsed?.id_number,
+        id_card_text: idData?.ocr_text,
+        id_card_name: idData?.parsed_info?.name,
+        id_card_number: idData?.parsed_info?.id_number,
         verified: !!(faceData?.success && idData?.success),
       };
 
@@ -155,18 +156,18 @@ export const IDCardScanner = ({ faceData, onComplete, onBack }) => {
             >
               <p className="text-white text-lg font-bold mb-2">{result.message}</p>
 
-              {result.parsed && (
+              {result.parsed_info && (
                 <div className="text-white text-sm">
-                  {result.parsed.name && <p>Name: {result.parsed.name}</p>}
-                  {result.parsed.id_number && <p>ID: {result.parsed.id_number}</p>}
+                  {result.parsed_info.name && <p>Name: {result.parsed_info.name}</p>}
+                  {result.parsed_info.id_number && <p>ID: {result.parsed_info.id_number}</p>}
                 </div>
               )}
 
-              {result.text && (
+              {result.ocr_text && (
                 <details className="mt-2">
                   <summary className="text-white cursor-pointer">View Full Text</summary>
                   <pre className="text-xs text-white mt-2 whitespace-pre-wrap">
-                    {result.text}
+                    {result.ocr_text}
                   </pre>
                 </details>
               )}

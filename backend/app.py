@@ -27,7 +27,6 @@ def cosine_distance(a, b):
     """Compute cosine distance between two embeddings"""
     return 1 - dot(a, b) / (norm(a) * norm(b))
 
-
 def load_known_faces(folder="known_faces", model_name="Facenet512"):
     """Load all images from known_faces folder and store embeddings"""
     base_dir = os.path.dirname(os.path.abspath(__file__))

@@ -3,7 +3,13 @@ import cv2
 from deepface import DeepFace
 from numpy import dot
 from numpy.linalg import norm
-
+# import cv2
+import numpy as np
+# from deepface import DeepFace
+# from numpy import dot
+# from numpy.linalg import norm
+from io import BytesIO
+from PIL import Image
 def cosine_distance(a, b):
     """Calculate cosine distance between two embeddings."""
     return 1 - dot(a, b) / (norm(a) * norm(b))
@@ -37,16 +43,22 @@ def load_known_faces(folder="known_faces", model_name="Facenet512"):
 
 
 def match_face(frame, known_faces, model_name="Facenet512", threshold=0.35):
-    """Match live face with known faces and return JSON-style structured result."""
+    """Match uploaded face image (bytes) with known faces."""
     try:
+        # ✅ Convert bytes to NumPy array if needed
+        if isinstance(frame, bytes):
+            img = Image.open(BytesIO(frame))
+            frame = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+
+        # ✅ Save temporary image (optional, helps DeepFace)
         temp_path = "temp.jpg"
         cv2.imwrite(temp_path, frame)
 
-        # Ensure the image actually saved (not blank)
+        # ✅ Ensure image actually saved (not blank)
         if os.path.getsize(temp_path) == 0:
             return {
                 "success": False,
-                "message": "⚠️ temp.jpg is blank — check your webcam frame capture"
+                "message": "⚠️ temp.jpg is blank — check your uploaded image"
             }
 
         live_embedding = DeepFace.represent(
@@ -58,7 +70,6 @@ def match_face(frame, known_faces, model_name="Facenet512", threshold=0.35):
 
         for name, stored_embedding in known_faces.items():
             distance = cosine_distance(live_embedding, stored_embedding)
-
             if distance < threshold:
                 return {
                     "success": True,
@@ -77,7 +88,6 @@ def match_face(frame, known_faces, model_name="Facenet512", threshold=0.35):
             "success": False,
             "message": f"⚠️ Error during face match: {e}"
         }
-
 
 if __name__ == "__main__":
     print("🟢 Loading known faces...")
