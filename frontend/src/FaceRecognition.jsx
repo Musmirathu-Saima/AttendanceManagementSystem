@@ -32,13 +32,13 @@ export default function FaceRecognition() {
 
   return (
     <div style={{ textAlign: "center", marginTop: "2rem" }}>
-      <video
+      {/* <video
         ref={videoRef}
         autoPlay
         playsInline
         width="400"
         style={{ borderRadius: "10px", boxShadow: "0 0 10px #aaa" }}
-      />
+      /> */}
       <div style={{ marginTop: "1rem" }}>
         <button onClick={startCamera} style={{ marginRight: "10px" }}>
           Start Camera
